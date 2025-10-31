@@ -11,32 +11,32 @@
  * specific language governing permissions and limitations under the License.
  */
 
-package com.baidu.mochow.model.enums;
+package com.baidu.mochow.model.entity;
 
-import com.fasterxml.jackson.annotation.JsonValue;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-public enum IndexType {
-    FLAT("FLAT"),
-    HNSW("HNSW"),
-    HNSWPQ("HNSWPQ"),
-    HNSWSQ("HNSWSQ"),
-    PUCK("PUCK"),
-    DISKANN("DISKANN"),
-    IVF("IVF"),
-    IVFSQ("IVFSQ"),
-    SPARSE_OPTIMIZED_FLAT("SPARSE_OPTIMIZED_FLAT"),
-    SECONDARY_INDEX("SECONDARY"),
-    INVERTED_INDEX("INVERTED"),
-    FILTERING_INDEX("FILTERING");
+/**
+ * IVF vector index parameters.
+ */
+@Getter
+@Setter
+@NoArgsConstructor
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
+public class IVFParams implements IndexParams {
+    private int nlist;
 
-    private final String value;
-
-    private IndexType(String value) {
-        this.value = value;
+    public IVFParams(int nlist) {
+        this.nlist = nlist;
     }
 
-    @JsonValue
-    public String getValue() {
-        return value;
+    @Override
+    public String toString() {
+        return "IVFParams{" +
+                "nlist=" + nlist +
+                '}';
     }
 }
+

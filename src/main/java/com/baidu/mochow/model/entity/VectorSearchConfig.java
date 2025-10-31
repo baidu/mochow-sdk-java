@@ -36,11 +36,27 @@ import com.baidu.mochow.model.enums.FilterMode;
  *   </tr>
  *   <tr>
  *     <td>HNSWPQ</td>
- *     <td>ef, pruning</td>
+ *     <td>ef</td>
+ *   </tr>
+ *   <tr>
+ *     <td>HNSWSQ</td>
+ *     <td>ef</td>
  *   </tr>
  *   <tr>
  *     <td>PUCK</td>
  *     <td>coarseCount</td>
+ *   </tr>
+ *   <tr>
+ *     <td>DISKANN</td>
+ *     <td>w, searchL</td>
+ *   </tr>
+ *   <tr>
+ *     <td>IVF</td>
+ *     <td>nprobe</td>
+ *   </tr>
+ *   <tr>
+ *     <td>IVFSQ</td>
+ *     <td>nprobe</td>
  *   </tr>
  *   <tr>
  *     <td>FLAT</td>
@@ -54,6 +70,9 @@ public class VectorSearchConfig {
     private final Optional<Integer> coarseCount;
     private final Optional<FilterMode> filterMode;
     private final Optional<Float> postFilterAmplificationFactor;
+    private final Optional<Integer> w;
+    private final Optional<Integer> searchL;
+    private final Optional<Integer> nprobe;
 
     private VectorSearchConfig(Builder builder) {
         this.ef = builder.ef;
@@ -61,6 +80,9 @@ public class VectorSearchConfig {
         this.coarseCount = builder.coarseCount;
         this.filterMode = builder.filterMode;
         this.postFilterAmplificationFactor = builder.postFilterAmplificationFactor;
+        this.w = builder.w;
+        this.searchL = builder.searchL;
+        this.nprobe = builder.nprobe;
     }
 
     public static Builder builder() {
@@ -75,6 +97,9 @@ public class VectorSearchConfig {
         coarseCount.ifPresent(value -> params.put("searchCoarseCount", value));
         filterMode.ifPresent(value -> params.put("filterMode", value));
         postFilterAmplificationFactor.ifPresent(value -> params.put("postFilterAmplificationFactor", value));
+        w.ifPresent(value -> params.put("W", value));
+        searchL.ifPresent(value -> params.put("searchL", value));
+        nprobe.ifPresent(value -> params.put("nprobe", value));
 
         return params;
     }
@@ -88,6 +113,9 @@ public class VectorSearchConfig {
         private Optional<Integer> coarseCount = Optional.empty();
         private Optional<FilterMode> filterMode = Optional.empty();
         private Optional<Float> postFilterAmplificationFactor = Optional.empty();
+        private Optional<Integer> w = Optional.empty();
+        private Optional<Integer> searchL = Optional.empty();
+        private Optional<Integer> nprobe = Optional.empty();
 
         public Builder() {
         }
@@ -123,6 +151,24 @@ public class VectorSearchConfig {
                 throw new IllegalArgumentException("postFilterAmplificationFactor must be greater than 1.0");
             }
             this.postFilterAmplificationFactor = Optional.of(postFilterAmplificationFactor);
+            return this;
+        }
+
+        public Builder w(int w) {
+            this.w = Optional.of(w);
+            return this;
+        }
+
+        public Builder searchL(int searchL) {
+            this.searchL = Optional.of(searchL);
+            return this;
+        }
+
+        public Builder nprobe(int nprobe) {
+            if (nprobe <= 0) {
+                throw new IllegalArgumentException("nprobe must be positive");
+            }
+            this.nprobe = Optional.of(nprobe);
             return this;
         }
 

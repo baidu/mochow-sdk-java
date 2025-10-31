@@ -22,6 +22,8 @@ import lombok.Setter;
 
 import com.baidu.mochow.model.enums.ElementType;
 import com.baidu.mochow.model.enums.FieldType;
+import com.baidu.mochow.model.enums.MapKeyType;
+import com.baidu.mochow.model.enums.MapValueType;
 
 @Getter
 @Setter
@@ -44,4 +46,10 @@ public class Field {
 
     @JsonInclude(JsonInclude.Include.NON_DEFAULT)
     private int maxCapacity;
+
+    @JsonInclude(JsonInclude.Include.NON_DEFAULT)
+    private MapKeyType keyType;
+
+    @JsonInclude(JsonInclude.Include.NON_DEFAULT)
+    private MapValueType valueType;
 }

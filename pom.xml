@@ -6,7 +6,7 @@
 
     <groupId>com.baidu</groupId>
     <artifactId>mochow-sdk-java</artifactId>
-    <version>2.2.2</version>
+    <version>2.3.1</version>
     <name>mochow-sdk-java</name>
     <description>Java SDK for mochow.</description>
     <url>https://cloud.baidu.com/doc/VDB/index.html</url>

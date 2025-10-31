@@ -15,7 +15,11 @@ package com.baidu.mochow.model.enums;
 
 import com.fasterxml.jackson.annotation.JsonValue;
 
-public enum FieldType {
+/**
+ * Map value type enum for MAP field type.
+ * Includes scalar types, FLOAT_VECTOR, and ARRAY.
+ */
+public enum MapValueType {
     BOOL("BOOL"),
     INT8("INT8"),
     UINT8("UINT8"),
@@ -36,16 +40,12 @@ public enum FieldType {
     TEXT("TEXT"),
     TEXT_GBK("TEXT_GBK"),
     TEXT_GB18030("TEXT_GB18030"),
-    ARRAY("ARRAY"),
-    JSON("JSON"),
-    MAP("MAP"),
     FLOAT_VECTOR("FLOAT_VECTOR"),
-    BINARY_VECTOR("BINARY_VECTOR"),
-    SPARSE_FLOAT_VECTOR("SPARSE_FLOAT_VECTOR");
+    ARRAY("ARRAY");
 
     private final String value;
 
-    private FieldType(String value) {
+    private MapValueType(String value) {
         this.value = value;
     }
 
@@ -54,3 +54,4 @@ public enum FieldType {
         return value;
     }
 }
+

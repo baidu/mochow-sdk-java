@@ -40,6 +40,10 @@ import com.baidu.mochow.model.entity.FilteringIndexField;
 import com.baidu.mochow.model.entity.FloatVector;
 import com.baidu.mochow.model.entity.HNSWParams;
 import com.baidu.mochow.model.entity.HNSWPQParams;
+import com.baidu.mochow.model.entity.HNSWSQParams;
+import com.baidu.mochow.model.entity.DiskANNParams;
+import com.baidu.mochow.model.entity.IVFParams;
+import com.baidu.mochow.model.entity.IVFSQParams;
 import com.baidu.mochow.model.entity.InvertedIndex;
 import com.baidu.mochow.model.entity.InvertedIndexParams;
 import com.baidu.mochow.model.entity.FilteringIndex;
@@ -210,16 +214,7 @@ public class MochowExample {
                                 .fieldType(FieldType.JSON).build());
 
         // 根据索引类型创建不同的向量索引
-        if (vectorIndexType == IndexType.HNSWPQ) {
-            schemaBuilder.addIndex(
-                    VectorIndex.builder()
-                            .indexName("vector_idx")
-                            .indexType(IndexType.HNSWPQ)
-                            .fieldName("vector")
-                            .params(new HNSWPQParams(32, 200, 4, 0.1f))
-                            .metricType(MetricType.L2)
-                            .autoBuild(false).build());
-        } else {
+        if (vectorIndexType == IndexType.HNSW) {
             schemaBuilder.addIndex(
                     VectorIndex.builder()
                             .indexName("vector_idx")
@@ -228,6 +223,53 @@ public class MochowExample {
                             .params(new HNSWParams(32, 200))
                             .metricType(MetricType.L2)
                             .autoBuild(false).build());
+        } else if (vectorIndexType == IndexType.HNSWPQ) {
+            schemaBuilder.addIndex(
+                    VectorIndex.builder()
+                            .indexName("vector_idx")
+                            .indexType(IndexType.HNSWPQ)
+                            .fieldName("vector")
+                            .params(new HNSWPQParams(32, 200, 4, 0.1f))
+                            .metricType(MetricType.L2)
+                            .autoBuild(false).build());
+        } else  if (vectorIndexType == IndexType.DISKANN) {
+            schemaBuilder.addIndex(
+                VectorIndex.builder()
+                        .indexName("vector_idx")
+                        .indexType(vectorIndexType)
+                        .fieldName("vector")
+                        .params(new DiskANNParams(4,100, 64))
+                        .metricType(MetricType.L2)
+                        .autoBuild(false).build());
+        } else if (vectorIndexType == IndexType.IVF) {
+            schemaBuilder.addIndex(
+                VectorIndex.builder()
+                        .indexName("vector_idx")
+                        .indexType(IndexType.IVF)
+                        .fieldName("vector")
+                        .params(new IVFParams(100))
+                        .metricType(MetricType.L2)
+                        .autoBuild(false).build());
+        } else if (vectorIndexType == IndexType.IVFSQ) {
+            schemaBuilder.addIndex(
+                VectorIndex.builder()
+                        .indexName("vector_idx")
+                        .indexType(IndexType.IVFSQ)
+                        .fieldName("vector")
+                        .params(new IVFSQParams(100, 8))
+                        .metricType(MetricType.L2)
+                        .autoBuild(false).build());
+        } else if (vectorIndexType == IndexType.HNSWSQ) {
+            schemaBuilder.addIndex(
+                VectorIndex.builder()
+                        .indexName("vector_idx")
+                        .indexType(IndexType.HNSWSQ)
+                        .fieldName("vector")
+                        .params(new HNSWSQParams(16, 200, 8))
+                        .metricType(MetricType.L2)
+                        .autoBuild(false).build());
+        } else {
+            throw new IllegalArgumentException("Unsupported index type: " + vectorIndexType);
         }
 
         schemaBuilder.addIndex(new SecondaryIndex("book_name_idx", "bookName"))
@@ -248,7 +290,7 @@ public class MochowExample {
         CreateTableRequest createTableRequest = CreateTableRequest.builder()
                 .database(DATABASE)
                 .table(TABLE)
-                .replication(1)
+                .replication(3)
                 .partition(new PartitionParams(PartitionType.HASH, 1))
                 .description("test")
                 .schema(schemaBuilder.build()).build();
@@ -277,7 +319,7 @@ public class MochowExample {
                         .addField(new RowField("author", "吴承恩"))
                         .addField(new RowField("page", 21))
                         .addField(new RowField("arr_field", Arrays.asList()))
-                        .addField(new RowField("json_field", Map.of()))
+                        .addField(new RowField("json_field", new HashMap<>()))
                         .addField(new RowField("segment", "富贵功名，前缘分定，为人切莫欺心。")).build()
         );
         rows.add(
@@ -288,7 +330,9 @@ public class MochowExample {
                         .addField(new RowField("author", "吴承恩"))
                         .addField(new RowField("page", 22))
                         .addField(new RowField("arr_field", Arrays.asList()))
-                        .addField(new RowField("json_field", Map.of("page", 22)))
+                        .addField(new RowField("json_field", new HashMap<String, Integer>() {{
+                            put("page", 22);
+                        }}))
                         .addField(new RowField("segment", "正大光明，忠良善果弥深。些些狂妄天加谴，眼前不遇待时临。")).build()
         );
         rows.add(
@@ -330,7 +374,8 @@ public class MochowExample {
                             .addField(new RowField("author", "罗贯中"))
                             .addField(new RowField("page", 26))
                             .addField(new RowField("arr_field", Arrays.asList("玄德", "糜竺", "吕布")))
-                            .addField(new RowField("segment", "玄德曰：\"布乃当今英勇之士，可出迎之。\"糜竺曰：\"吕布乃虎狼之徒，不可收留；收则伤人矣。")).build()
+                            .addField(new RowField("segment", 
+                            "玄德曰：\"布乃当今英勇之士，可出迎之。\"糜竺曰：\"吕布乃虎狼之徒，不可收留；收则伤人矣。")).build()
             );
         }
         UpsertRequest upsertRequest = UpsertRequest.builder().database(DATABASE).table(TABLE).rows(rows).build();
@@ -396,11 +441,23 @@ public class MochowExample {
 
     public void topkSearch() throws MochowClientException, InterruptedException {
         FloatVector vector = new FloatVector(Arrays.asList(1F, 0.21F, 0.213F, 0F));
-        VectorTopkSearchRequest searchRequest = VectorTopkSearchRequest.builder("vector", vector, 10)
-            .filter("bookName='三国演义'")
-            .config(VectorSearchConfig.builder().ef(200).build())
-            .build();
-
+        VectorTopkSearchRequest.Builder searchRequestBuilder = VectorTopkSearchRequest.builder("vector", vector, 10)
+                .filter("bookName='三国演义'");
+        if (this.vectorIndexType == IndexType.HNSW) {
+            searchRequestBuilder = searchRequestBuilder.config(VectorSearchConfig.builder().ef(200).pruning(true).build());
+        } else if (this.vectorIndexType == IndexType.HNSWPQ) {
+            searchRequestBuilder = searchRequestBuilder.config(VectorSearchConfig.builder().ef(200).build());
+        } else if (this.vectorIndexType == IndexType.HNSWSQ) {
+            searchRequestBuilder = searchRequestBuilder.config(VectorSearchConfig.builder().ef(200).build());
+        } else if (this.vectorIndexType == IndexType.DISKANN) {
+            searchRequestBuilder = searchRequestBuilder.config(VectorSearchConfig.builder().w(1).searchL(100).build());
+        } else if (this.vectorIndexType == IndexType.IVF || this.vectorIndexType == IndexType.IVFSQ) {
+            searchRequestBuilder = searchRequestBuilder.config(VectorSearchConfig.builder().nprobe(10).build());
+        } else {
+            throw new IllegalArgumentException("Unknown index type: " + this.vectorIndexType);
+        }
+        
+        VectorTopkSearchRequest searchRequest = searchRequestBuilder.build();
         SearchRowResponse searchResponse = mochowClient.vectorSearch(DATABASE, TABLE, searchRequest);
         System.out.printf("TopkSearch result: %s\n", JsonUtils.toJsonString(searchResponse.getRows()));
     }
@@ -621,7 +678,7 @@ public class MochowExample {
         CreateTableRequest createTableRequest = CreateTableRequest.builder()
                 .database(database)
                 .table(tableName)
-                .replication(1)
+                .replication(3)
                 .partition(new PartitionParams(PartitionType.HASH, 1))
                 .description("test binary vector")
                 .schema(schemaBuilder.build()).build();
@@ -737,7 +794,7 @@ public class MochowExample {
         CreateTableRequest createTableRequest = CreateTableRequest.builder()
                 .database(database)
                 .table(tableName)
-                .replication(1)
+                .replication(3)
                 .partition(new PartitionParams(PartitionType.HASH, 1))
                 .description("test sparse vector")
                 .schema(schemaBuilder.build()).build();

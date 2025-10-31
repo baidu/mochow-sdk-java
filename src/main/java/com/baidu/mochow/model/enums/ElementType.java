@@ -35,7 +35,9 @@
      UUID("UUID"),
      TEXT("TEXT"),
      TEXT_GBK("TEXT_GBK"),
-     TEXT_GB18030("TEXT_GB18030");
+     TEXT_GB18030("TEXT_GB18030"),
+     FLOAT_VECTOR("FLOAT_VECTOR"),
+     ARRAY("ARRAY");
 
      private final String value;
 

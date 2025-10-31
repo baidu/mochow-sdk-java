@@ -51,6 +51,10 @@ public class IndexField {
     public boolean isVectorIndex() {
         return this.indexType.equals(IndexType.HNSW) || this.indexType.equals(IndexType.PUCK)
                 || this.indexType.equals(IndexType.HNSWPQ)
-                || this.indexType.equals(IndexType.SPARSE_OPTIMIZED_FLAT);
+                || this.indexType.equals(IndexType.HNSWSQ)
+                || this.indexType.equals(IndexType.SPARSE_OPTIMIZED_FLAT)
+                || this.indexType.equals(IndexType.DISKANN)
+                || this.indexType.equals(IndexType.IVF)
+                || this.indexType.equals(IndexType.IVFSQ);
     }
 }
