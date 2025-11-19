@@ -33,4 +33,5 @@ public class CreateTableRequest extends AbstractMochowRequest {
     private PartitionParams partition;
     private boolean enableDynamicField;
     private Schema schema;
+    private Integer ttl;
 }

@@ -293,6 +293,7 @@ public class MochowExample {
                 .replication(3)
                 .partition(new PartitionParams(PartitionType.HASH, 1))
                 .description("test")
+                .ttl(60)
                 .schema(schemaBuilder.build()).build();
         mochowClient.createTable(createTableRequest);
 
