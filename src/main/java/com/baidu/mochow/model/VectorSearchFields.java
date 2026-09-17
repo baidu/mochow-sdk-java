@@ -26,6 +26,9 @@ public class VectorSearchFields extends SearchCommonFields {
     public String vectorField;
     public Vector vector;
     public List<Vector> vectors;
+    public String textField;
+    public String text;
+    public List<String> texts;
     public boolean hasDistanceNear;
     public float distanceNear;
     public boolean hasDistanceFar;
@@ -36,6 +39,18 @@ public class VectorSearchFields extends SearchCommonFields {
     public boolean hasIteratedIds;
 
     public void fillSearchFields(Map<String, Object> fields) {
+        boolean hasTextInput = textField != null || text != null || texts != null;
+        boolean hasVectorInput = vector != null || vectors != null;
+        if (hasTextInput && hasVectorInput) {
+            throw new IllegalArgumentException(
+                    "text and vector search inputs are mutually exclusive");
+        }
+        if (hasTextInput && (textField == null || text == null && texts == null)) {
+            throw new IllegalArgumentException("textField and text/texts are required");
+        }
+        if (text != null && texts != null) {
+            throw new IllegalArgumentException("text and texts are mutually exclusive");
+        }
         // anns.params
         Map<String, Object> params = new HashMap<>();
         if (hasDistanceNear) {
@@ -55,6 +70,15 @@ public class VectorSearchFields extends SearchCommonFields {
         Map<String, Object> anns = new HashMap<>();
         if (vectorField != null && !vectorField.isEmpty()) {
             anns.put("vectorField", vectorField);
+        }
+        if (textField != null) {
+            anns.put("textField", textField);
+        }
+        if (text != null) {
+            anns.put("text", text);
+        }
+        if (texts != null) {
+            anns.put("texts", texts);
         }
         if (vector != null) {
             anns.put(vector.name(), vector.representation());
@@ -97,4 +121,4 @@ public class VectorSearchFields extends SearchCommonFields {
             fields.put("advancedOptions", advancedOptions.toMap());
         }
     }
-} 
+}
