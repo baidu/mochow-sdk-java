@@ -1,0 +1,159 @@
+---
+ alwaysApply: false 
+---
+# Mochow Java SDK 项目规则
+
+## 项目概览
+
+**项目定位**：百度向量数据库（Mochow）Java SDK，为百度智能云向量数据库提供Java语言客户端支持。
+
+**技术栈**：
+- 构建工具：Maven（单模块结构）
+- Java版本：Java 8（兼容Java 7运行时）
+- HTTP通信：Apache HttpAsyncClient 4.x
+- JSON处理：Jackson 2.x
+- 工具库：Google Guava、Apache Commons系列
+- 代码简化：Lombok
+
+## 模块划分与目录结构
+
+```
+com.baidu.mochow
+├── auth          # 认证与签名（Credentials、Signer）
+├── client        # 客户端核心（MochowClient、配置）
+├── examples      # 使用示例代码
+├── exception     # 异常层次（MochowClientException等）
+├── http          # HTTP通信层
+│   └── handler   # 响应处理器链
+├── internal      # 内部请求封装（InternalRequest）
+├── model         # 数据模型
+│   ├── entity    # 实体类（Row、Field等）
+│   └── enums     # 枚举类型（FieldType、IndexType等）
+└── util          # 工具类（JsonUtils、HttpUtils等）
+```
+
+**组织原则**：
+- 按功能分层组织，非按业务领域划分
+- 所有Request/Response类直接位于`model`包下，不按功能子包划分
+- 枚举类型统一收敛至`model.enums`包
+- 工具类统一收敛至`util`包，以`Utils`后缀命名
+
+## 命名规范
+
+### 类命名
+- **请求/响应类**：统一以`Request`/`Response`结尾，继承`AbstractMochowRequest`/`AbstractMochowResponse`
+- **枚举类**：使用PascalCase，不含"Enum"后缀（如`FieldType`、`IndexType`）
+- **异常类**：以`Mochow`为前缀，继承层次为基类→服务异常类
+- **工具类**：以`Utils`结尾（如`JsonUtils`）
+
+### 方法命名
+- **CRUD操作**：使用`create`、`delete`、`describe`、`show`、`list`、`insert`、`upsert`、`query`、`search`等动词
+- **布尔方法**：使用`is`前缀或`should`前缀
+- **集合返回**：使用复数形式（如`getDatabases()`）
+- **转换方法**：使用`to`/`from`前缀
+
+### 常量命名
+- 静态常量使用`UPPER_SNAKE_CASE`
+- 枚举值使用PascalCase，字符串值使用小写+下划线
+- 所有枚举建议包含`UNKNOWN`值作为安全默认值
+
+## 类设计模式
+
+### 继承体系
+- **请求基类**：`AbstractMochowRequest`作为类型标记，标记`@NotThreadSafe`
+- **响应基类**：`AbstractMochowResponse`实现`Serializable`，包含`MochowResponseMetadata`
+- **继承原则**：保持扁平化，避免过深继承层次，优先使用组合
+
+### Builder模式规范
+复杂对象（如请求类、配置类）使用Builder模式：
+- 必填字段通过Builder构造函数强制设置
+- 可选字段使用fluent风格setter方法，支持方法链式调用
+- 可使用Lombok的`@Builder`注解简化实现
+
+### Lombok使用规范
+- `@Data`：用于简单POJO，自动生成getter/setter/toString/equals/hashCode
+- `@Builder`：用于需要Builder模式的类
+- `@JsonProperty`：显式指定JSON序列化字段名，当Java字段与JSON字段命名不一致时必用
+- `@JsonInclude(Include.NON_NULL)`：排除空值字段
+
+## HTTP通信层设计
+
+### 处理器链模式
+HTTP响应处理采用职责链模式：
+- 定义`HttpResponseHandler`接口，单一方法处理响应
+- 处理器按顺序执行：元数据提取→JSON解析→错误处理
+- 每个处理器返回boolean值决定是否终止后续处理
+
+### 请求封装
+- `InternalRequest`封装完整HTTP请求信息（方法、URI、Header、Body）
+- 支持`RestartableInputStream`实现请求重试时的流重置
+- 使用`HttpMethodName`枚举定义HTTP方法，避免字符串硬编码
+
+### 客户端架构
+- `AbstractMochowClient`：抽象基类，定义通用常量、管理HttpClient实例、提供`invokeHttpClient()`模板方法
+- `MochowClient`：具体实现，按业务领域组织方法（database、table、index、row等）
+- 支持同步/异步双模式，异步模式针对PUT方法优化
+
+## 异常处理机制
+
+### 异常层次
+```
+RuntimeException
+└── MochowClientException（SDK基础异常）
+    └── MochowServiceException（服务层异常）
+```
+
+### 设计原则
+- 基础异常继承`RuntimeException`，避免强制try-catch
+- 采用扁平化层次结构
+- 服务异常包含`statusCode`、`errorCode`、`requestId`等上下文信息
+
+### 异常转换
+- 底层异常（如`IOException`）统一包装为`MochowClientException`
+- 提供有意义的错误消息，保留原始异常作为cause
+- 在工具类中进行异常转换，保持业务代码简洁
+
+## 枚举设计规范
+
+- 所有枚举包含`UNKNOWN`值作为默认值
+- 使用`@JsonValue`注解控制序列化
+- 通过构造函数与字符串值映射
+- 枚举值使用PascalCase，字符串值使用小写+下划线
+
+## 工具类设计
+
+- 类定义为`public final`，私有构造函数防止实例化
+- 使用静态常量持有配置（如`ObjectMapper`）
+- 静态初始化块进行复杂配置
+- 方法返回泛型支持类型安全
+- 使用Google Guava的`Preconditions`进行参数校验
+
+## 关键开发命令
+
+```bash
+# 编译打包
+mvn clean package
+
+# 跳过测试构建
+mvn clean package -DskipTests
+
+# 生成源码包和Javadoc
+mvn source:jar javadoc:jar
+
+# 代码覆盖率检测
+mvn jacoco:report
+```
+
+## 项目差异化特征
+
+1. **SDK定位**：面向云服务的客户端SDK，非业务应用，强调API完整性和易用性
+2. **双模式支持**：同步/异步HTTP调用，异步针对大数据传输优化
+3. **BCE签名**：采用百度智能云标准签名算法（HMAC-SHA256）
+4. **无测试目录**：项目当前无单元测试（`src/test`不存在），构建时跳过测试
+5. **版本兼容**：同时支持Java 7和Java 8运行时环境
+
+## 注意事项
+
+- `[需人工确认]` 部分模块（如`examples`包）的代码风格可能与其他模块存在差异，建议遵循主代码库规范
+- `[需人工确认]` 新增API时需同时添加对应的Request/Response类和枚举值
+- 所有回答均使用中文

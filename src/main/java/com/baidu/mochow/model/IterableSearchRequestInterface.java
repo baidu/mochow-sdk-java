@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Baidu, Inc.
+ * Copyright 2025 Baidu, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -13,13 +13,11 @@
 
 package com.baidu.mochow.model;
 
-import lombok.Getter;
+/**
+ * The search requests which support search iterator, aka the "iteratedIds" argument.
+ */
+public interface IterableSearchRequestInterface extends SearchRequestInterface {
+    int getLimit();
 
-import com.baidu.mochow.model.entity.Row;
-import com.baidu.mochow.model.entity.VectorIndexMembership;
-
-@Getter
-public class QueryResponse extends AbstractMochowResponse {
-    private Row row;
-    private VectorIndexMembership vectorIndexMembership;
+    void setIteratedIds(String iteratedIds);
 }

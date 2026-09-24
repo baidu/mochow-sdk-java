@@ -1,0 +1,19 @@
+Global:
+  version: 2.0
+
+Default:
+  profile: [change]
+
+Profiles:
+  - profile:
+    name: change
+    mode: AGENT
+    environment:
+      image: DECK_STD_CENTOS7
+      tools:
+        - jdk: 11.0.18
+        - maven: 3.8.6
+    build:
+      command: sh build.sh
+    artifacts:
+      release: true

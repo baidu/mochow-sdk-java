@@ -1,0 +1,2 @@
+VERSION="0.0.1"
+BUILD_SUBMITTER -u ./ -c 'export JAVA_HOME=${JAVA_HOME_1_6_33} && export PATH=${JAVA_HOME}/bin:${MAVEN_3_0_4}:$PATH && cd baidu/vdb/mochow-java-sdk && mvn clean && mvn -U -DskipTests -Dfile.encoding=UTF-8 package && rm -rf output && mkdir output && cp target/*.jar output/ && cp target/*.zip output/' -m baidu/vdb/mochow-java-sdk
