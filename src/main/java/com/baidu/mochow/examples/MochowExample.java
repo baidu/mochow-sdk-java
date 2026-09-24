@@ -13,6 +13,7 @@ import com.baidu.mochow.exception.MochowServiceException;
 import com.baidu.mochow.model.AddFieldRequest;
 import com.baidu.mochow.model.BM25SearchRequest;
 import com.baidu.mochow.model.CreateTableRequest;
+import com.baidu.mochow.model.CreateIndexRequest;
 import com.baidu.mochow.model.DeleteRequest;
 import com.baidu.mochow.model.DescribeIndexResponse;
 import com.baidu.mochow.model.DescribeTableResponse;
@@ -35,14 +36,23 @@ import com.baidu.mochow.model.SearchIterator;
 import com.baidu.mochow.model.SearchIteratorArgs;
 import com.baidu.mochow.model.entity.BinaryVector;
 import com.baidu.mochow.model.entity.DistanceRange;
+import com.baidu.mochow.model.entity.DecayFunction;
+import com.baidu.mochow.model.entity.HighlightParams;
+import com.baidu.mochow.model.entity.HighlightParamField;
+import com.baidu.mochow.model.entity.StopWords;
+import com.baidu.mochow.model.entity.PersistentBitmapIndex;
+import com.baidu.mochow.model.entity.PersistentAggregatedBitmapIndex;
 import com.baidu.mochow.model.entity.Field;
 import com.baidu.mochow.model.entity.FilteringIndexField;
 import com.baidu.mochow.model.entity.FloatVector;
 import com.baidu.mochow.model.entity.HNSWParams;
 import com.baidu.mochow.model.entity.HNSWPQParams;
 import com.baidu.mochow.model.entity.HNSWSQParams;
+import com.baidu.mochow.model.entity.HNSWRABITQParams;
 import com.baidu.mochow.model.entity.DiskANNParams;
+import com.baidu.mochow.model.entity.DiskANNRaBitQParams;
 import com.baidu.mochow.model.entity.IVFParams;
+import com.baidu.mochow.model.entity.IVFPQParams;
 import com.baidu.mochow.model.entity.IVFSQParams;
 import com.baidu.mochow.model.entity.InvertedIndex;
 import com.baidu.mochow.model.entity.InvertedIndexParams;
@@ -115,8 +125,20 @@ public class MochowExample {
             this.searchData();
             System.out.println("search data success");
 
+            this.bm25AdvancedSearchExample();
+            System.out.println("bm25 advanced search(highlight/synonyms/decay) success");
+
+            this.vectorIndexMembershipExample();
+            System.out.println("vector index membership query success");
+
             this.searchIteratorExample();
             System.out.println("search iterator example success");
+
+            this.bm25AndHybridSearchIteratorExample();
+            System.out.println("bm25/hybrid search iterator example success");
+
+            this.createAndDropInvertedIndexExample();
+            System.out.println("create/drop inverted index example success");
 
             this.updateData();
             System.out.println("update data success");
@@ -129,6 +151,12 @@ public class MochowExample {
 
             this.sparseVectorUsageExample();
             System.out.println("sparse vector example success");
+
+            this.truncationDimensionExample();
+            System.out.println("truncation dimension example success");
+
+            this.persistentBitmapIndexExample();
+            System.out.println("persistent bitmap index example success");
 
             this.deleteAndDrop();
             System.out.println("delete and drop table success");
@@ -214,7 +242,7 @@ public class MochowExample {
                                 .fieldType(FieldType.JSON).build());
 
         // 根据索引类型创建不同的向量索引
-        if (vectorIndexType == IndexType.HNSW) {
+        if (IndexType.HNSW.equals(vectorIndexType)) {
             schemaBuilder.addIndex(
                     VectorIndex.builder()
                             .indexName("vector_idx")
@@ -223,7 +251,7 @@ public class MochowExample {
                             .params(new HNSWParams(32, 200))
                             .metricType(MetricType.L2)
                             .autoBuild(false).build());
-        } else if (vectorIndexType == IndexType.HNSWPQ) {
+        } else if (IndexType.HNSWPQ.equals(vectorIndexType)) {
             schemaBuilder.addIndex(
                     VectorIndex.builder()
                             .indexName("vector_idx")
@@ -232,7 +260,25 @@ public class MochowExample {
                             .params(new HNSWPQParams(32, 200, 4, 0.1f))
                             .metricType(MetricType.L2)
                             .autoBuild(false).build());
-        } else  if (vectorIndexType == IndexType.DISKANN) {
+        } else if (IndexType.HNSWSQ.equals(vectorIndexType)) {
+            schemaBuilder.addIndex(
+                VectorIndex.builder()
+                        .indexName("vector_idx")
+                        .indexType(IndexType.HNSWSQ)
+                        .fieldName("vector")
+                        .params(new HNSWSQParams(16, 200, 8))
+                        .metricType(MetricType.L2)
+                        .autoBuild(false).build());
+        } else if (IndexType.HNSWRABITQ.equals(vectorIndexType)) {
+            schemaBuilder.addIndex(
+                VectorIndex.builder()
+                        .indexName("vector_idx")
+                        .indexType(IndexType.HNSWRABITQ)
+                        .fieldName("vector")
+                        .params(new HNSWRABITQParams(32, 200))
+                        .metricType(MetricType.L2)
+                        .autoBuild(false).build());
+        } else if (IndexType.DISKANN.equals(vectorIndexType)) {
             schemaBuilder.addIndex(
                 VectorIndex.builder()
                         .indexName("vector_idx")
@@ -241,7 +287,16 @@ public class MochowExample {
                         .params(new DiskANNParams(4,100, 64))
                         .metricType(MetricType.L2)
                         .autoBuild(false).build());
-        } else if (vectorIndexType == IndexType.IVF) {
+        } else if (IndexType.DISKANNRABITQ.equals(vectorIndexType)) {
+            schemaBuilder.addIndex(
+                VectorIndex.builder()
+                        .indexName("vector_idx")
+                        .indexType(vectorIndexType)
+                        .fieldName("vector")
+                        .params(new DiskANNRaBitQParams(64, 100))
+                        .metricType(MetricType.L2)
+                        .autoBuild(false).build());
+        } else if (IndexType.IVF.equals(vectorIndexType)) {
             schemaBuilder.addIndex(
                 VectorIndex.builder()
                         .indexName("vector_idx")
@@ -250,22 +305,22 @@ public class MochowExample {
                         .params(new IVFParams(100))
                         .metricType(MetricType.L2)
                         .autoBuild(false).build());
-        } else if (vectorIndexType == IndexType.IVFSQ) {
+        } else if (IndexType.IVFPQ.equals(vectorIndexType)) {
+            schemaBuilder.addIndex(
+                VectorIndex.builder()
+                        .indexName("vector_idx")
+                        .indexType(IndexType.IVFPQ)
+                        .fieldName("vector")
+                        .params(new IVFPQParams(100, 4))
+                        .metricType(MetricType.L2)
+                        .autoBuild(false).build());
+        } else if (IndexType.IVFSQ.equals(vectorIndexType)) {
             schemaBuilder.addIndex(
                 VectorIndex.builder()
                         .indexName("vector_idx")
                         .indexType(IndexType.IVFSQ)
                         .fieldName("vector")
                         .params(new IVFSQParams(100, 8))
-                        .metricType(MetricType.L2)
-                        .autoBuild(false).build());
-        } else if (vectorIndexType == IndexType.HNSWSQ) {
-            schemaBuilder.addIndex(
-                VectorIndex.builder()
-                        .indexName("vector_idx")
-                        .indexType(IndexType.HNSWSQ)
-                        .fieldName("vector")
-                        .params(new HNSWSQParams(16, 200, 8))
                         .metricType(MetricType.L2)
                         .autoBuild(false).build());
         } else {
@@ -277,20 +332,23 @@ public class MochowExample {
                               "book_segment_inverted_idx",
                               new String[]{"segment"},
                               new InvertedIndexParams(
-                                  InvertedIndexAnalyzer.CHINESE_ANALYZER,
+                                  InvertedIndexAnalyzer.ENGLISH_ANALYZER,
                                   InvertedIndexParseMode.FINE_MODE,
-                                  true)))
+                                  true,
+                                  new StopWords("CUSTOM", Arrays.asList("the", "a", "of")))))
                 .addIndex(new FilteringIndex(
                               "bookname_filtering_idx",
                               new String[]{"bookName"}))
                 .addIndex(FilteringIndex.builder()
                             .name("category_filtering_idx")
-                            .addField(new FilteringIndexField("category", IndexStructureType.BITMAP)).build());
+                            .addField(new FilteringIndexField("category", IndexStructureType.BITMAP))
+                            // AGGREGATED_BITMAP 适用于数值列的范围过滤
+                            .addField(new FilteringIndexField("page", IndexStructureType.AGGREGATED_BITMAP)).build());
 
         CreateTableRequest createTableRequest = CreateTableRequest.builder()
                 .database(DATABASE)
                 .table(TABLE)
-                .replication(3)
+                .replication(1)
                 .partition(new PartitionParams(PartitionType.HASH, 1))
                 .description("test")
                 .ttl(60)
@@ -344,7 +402,8 @@ public class MochowExample {
                         .addField(new RowField("author", "罗贯中"))
                         .addField(new RowField("page", 23))
                         .addField(new RowField("arr_field", Arrays.asList("吕布")))
-                        .addField(new RowField("segment", "细作探知这个消息，飞报吕布。")).build()
+                        .addField(new RowField("segment", "细作探知这个消息，飞报吕布。"
+                                + " Xuande heard the news of Lubu at Xuzhou.")).build()
         );
         rows.add(
                 Row.builder()
@@ -376,7 +435,8 @@ public class MochowExample {
                             .addField(new RowField("page", 26))
                             .addField(new RowField("arr_field", Arrays.asList("玄德", "糜竺", "吕布")))
                             .addField(new RowField("segment", 
-                            "玄德曰：\"布乃当今英勇之士，可出迎之。\"糜竺曰：\"吕布乃虎狼之徒，不可收留；收则伤人矣。")).build()
+                            "玄德曰：\"布乃当今英勇之士，可出迎之。\"糜竺曰：\"吕布乃虎狼之徒，不可收留；收则伤人矣。"
+                            + " Xuande said Lubu was a brave man of the time.")).build()
             );
         }
         UpsertRequest upsertRequest = UpsertRequest.builder().database(DATABASE).table(TABLE).rows(rows).build();
@@ -395,6 +455,7 @@ public class MochowExample {
                 .table(TABLE)
                 .retrieveVector(true)
                 .addPrimaryKey("id", "0005")
+                .readConsistency(ReadConsistency.STRONG)
                 .projections(Arrays.asList("id", "bookName")).build();
         QueryResponse queryResponse = mochowClient.query(queryRequest);
         System.out.printf("Query result: %s\n", JsonUtils.toJsonString(queryResponse.getRow()));
@@ -405,7 +466,7 @@ public class MochowExample {
                 .database(DATABASE)
                 .table(TABLE)
                 .limit(30)
-                .readConsistency(ReadConsistency.EVENTUAL)
+                .readConsistency(ReadConsistency.STRONG)
                 .projections(Arrays.asList("id", "bookName")).build();
         while (true) {
             SelectResponse selectResponse = mochowClient.select(selectRequest);
@@ -444,15 +505,20 @@ public class MochowExample {
         FloatVector vector = new FloatVector(Arrays.asList(1F, 0.21F, 0.213F, 0F));
         VectorTopkSearchRequest.Builder searchRequestBuilder = VectorTopkSearchRequest.builder("vector", vector, 10)
                 .filter("bookName='三国演义'");
-        if (this.vectorIndexType == IndexType.HNSW) {
+        if (IndexType.HNSW.equals(this.vectorIndexType)) {
             searchRequestBuilder = searchRequestBuilder.config(VectorSearchConfig.builder().ef(200).pruning(true).build());
-        } else if (this.vectorIndexType == IndexType.HNSWPQ) {
+        } else if (IndexType.HNSWPQ.equals(this.vectorIndexType)) {
             searchRequestBuilder = searchRequestBuilder.config(VectorSearchConfig.builder().ef(200).build());
-        } else if (this.vectorIndexType == IndexType.HNSWSQ) {
+        } else if (IndexType.HNSWSQ.equals(this.vectorIndexType)) {
             searchRequestBuilder = searchRequestBuilder.config(VectorSearchConfig.builder().ef(200).build());
-        } else if (this.vectorIndexType == IndexType.DISKANN) {
+        } else if (IndexType.HNSWRABITQ.equals(this.vectorIndexType)) {
+            searchRequestBuilder = searchRequestBuilder.config(VectorSearchConfig.builder().ef(200).build());
+        } else if (IndexType.DISKANN.equals(this.vectorIndexType)) {
             searchRequestBuilder = searchRequestBuilder.config(VectorSearchConfig.builder().w(1).searchL(100).build());
-        } else if (this.vectorIndexType == IndexType.IVF || this.vectorIndexType == IndexType.IVFSQ) {
+        } else if (IndexType.DISKANNRABITQ.equals(this.vectorIndexType)) {
+            searchRequestBuilder = searchRequestBuilder.config(VectorSearchConfig.builder().w(1).searchL(100).build());
+        } else if (IndexType.IVF.equals(this.vectorIndexType) || IndexType.IVFPQ.equals(this.vectorIndexType)
+                || IndexType.IVFSQ.equals(this.vectorIndexType)) {
             searchRequestBuilder = searchRequestBuilder.config(VectorSearchConfig.builder().nprobe(10).build());
         } else {
             throw new IllegalArgumentException("Unknown index type: " + this.vectorIndexType);
@@ -679,7 +745,7 @@ public class MochowExample {
         CreateTableRequest createTableRequest = CreateTableRequest.builder()
                 .database(database)
                 .table(tableName)
-                .replication(3)
+                .replication(1)
                 .partition(new PartitionParams(PartitionType.HASH, 1))
                 .description("test binary vector")
                 .schema(schemaBuilder.build()).build();
@@ -795,7 +861,7 @@ public class MochowExample {
         CreateTableRequest createTableRequest = CreateTableRequest.builder()
                 .database(database)
                 .table(tableName)
-                .replication(3)
+                .replication(1)
                 .partition(new PartitionParams(PartitionType.HASH, 1))
                 .description("test sparse vector")
                 .schema(schemaBuilder.build()).build();
@@ -919,5 +985,256 @@ public class MochowExample {
             }
         }
         iterator2.close();
+    }
+
+    // 全文检索高亮、请求级同义词以及衰变排名器
+    public void bm25AdvancedSearchExample() throws MochowClientException {
+        HighlightParams highlight = new HighlightParams();
+        highlight.setPreTags(Arrays.asList("<em>"));
+        highlight.setPostTags(Arrays.asList("</em>"));
+        highlight.setFragmentSize(120);
+        highlight.setNumberOfFragments(3);
+        Map<String, HighlightParamField> highlightFields = new HashMap<>();
+        highlightFields.put("segment", new HighlightParamField(120, 0));
+        highlight.setFields(highlightFields);
+
+        DecayFunction pageDecay = new DecayFunction();
+        pageDecay.setName("page_decay");
+        pageDecay.setType("LINEAR");
+        pageDecay.setFieldName("page");
+        pageDecay.setOrigin(21);
+        pageDecay.setScale(100);
+        pageDecay.setWeight(0.3);
+
+        BM25SearchRequest searchRequest = BM25SearchRequest.builder("book_segment_inverted_idx", "segment:Xuande")
+                .limit(10)
+                .projections(Arrays.asList("id", "segment"))
+                .synonyms(Arrays.asList(Arrays.asList("Xuande", "Liubei")))
+                .highlight(highlight)
+                .decay(Arrays.asList(pageDecay))
+                .build();
+
+        SearchRowResponse searchResponse = mochowClient.bm25Search(DATABASE, TABLE, searchRequest);
+        System.out.printf("BM25 advanced search result: %s\n", JsonUtils.toJsonString(searchResponse.getRows()));
+    }
+
+    // 异步创建/删除全文索引
+    public void createAndDropInvertedIndexExample() throws MochowClientException, InterruptedException {
+        String indexName = "book_segment_inverted_idx_v2";
+        CreateIndexRequest createIndexRequest = CreateIndexRequest.builder()
+                .database(DATABASE)
+                .table(TABLE)
+                .addIndex(new InvertedIndex(
+                        indexName,
+                        new String[]{"segment"},
+                        new InvertedIndexParams(
+                                InvertedIndexAnalyzer.ENGLISH_ANALYZER,
+                                InvertedIndexParseMode.FINE_MODE,
+                                true,
+                                new StopWords("CUSTOM", Arrays.asList("the", "a", "of")))))
+                .build();
+        mochowClient.createIndex(createIndexRequest);
+
+        // 全文索引异步构建，构建完成后 state 才会变为 NORMAL
+        while (true) {
+            DescribeIndexResponse describeIndexResponse = mochowClient.describeIndex(DATABASE, TABLE, indexName);
+            if (describeIndexResponse.getIndex().getState() == IndexState.NORMAL) {
+                break;
+            }
+            Thread.sleep(3000);
+        }
+
+        mochowClient.dropIndex(DATABASE, TABLE, indexName);
+    }
+
+    // 指定向量维度子集构建索引
+    public void truncationDimensionExample() throws MochowClientException, InterruptedException {
+        String database = "truncation_dimension_db";
+        String tableName = "truncation_dimension_table";
+        if (mochowClient.hasDatabase(database)) {
+            if (mochowClient.hasTable(database, tableName)) {
+                mochowClient.dropTable(database, tableName);
+                Thread.sleep(10000);
+            }
+            mochowClient.dropDatabase(database);
+        }
+        mochowClient.createDatabase(database);
+
+        Schema.Builder schemaBuilder = Schema.builder()
+                .addField(Field.builder()
+                        .fieldName("id")
+                        .fieldType(FieldType.STRING)
+                        .primaryKey(true)
+                        .partitionKey(true)
+                        .autoIncrement(false)
+                        .notNull(true).build())
+                .addField(Field.builder()
+                        .fieldName("vector")
+                        .fieldType(FieldType.FLOAT_VECTOR)
+                        .dimension(8)
+                        .notNull(true).build())
+                // truncationDimension 为 Index 顶层参数，格式为 [begin, end)
+                .addIndex(new VectorIndex(
+                        "vector_idx", "vector", IndexType.HNSW, MetricType.L2,
+                        new HNSWParams(32, 200), Arrays.asList(0, 4)));
+
+        CreateTableRequest createTableRequest = CreateTableRequest.builder()
+                .database(database)
+                .table(tableName)
+                .replication(1)
+                .partition(new PartitionParams(PartitionType.HASH, 1))
+                .description("test truncation dimension")
+                .schema(schemaBuilder.build()).build();
+        mochowClient.createTable(createTableRequest);
+
+        while (true) {
+            Thread.sleep(3000);
+            if (mochowClient.describeTable(database, tableName).getTable().getState() == TableState.NORMAL) {
+                break;
+            }
+        }
+
+        DescribeIndexResponse describeIndexResponse = mochowClient.describeIndex(database, tableName, "vector_idx");
+        System.out.printf("Truncation dimension of vector_idx: %s\n",
+                JsonUtils.toJsonString(describeIndexResponse.getIndex().getTruncationDimension()));
+
+        mochowClient.dropTable(database, tableName);
+        Thread.sleep(10000);
+        mochowClient.dropDatabase(database);
+    }
+
+    // 持久化 BITMAP / 持久化聚合 BITMAP 索引
+    public void persistentBitmapIndexExample() throws MochowClientException, InterruptedException {
+        String database = "persistent_bitmap_db";
+        String tableName = "persistent_bitmap_table";
+        if (mochowClient.hasDatabase(database)) {
+            if (mochowClient.hasTable(database, tableName)) {
+                mochowClient.dropTable(database, tableName);
+                Thread.sleep(10000);
+            }
+            mochowClient.dropDatabase(database);
+        }
+        mochowClient.createDatabase(database);
+
+        Schema.Builder schemaBuilder = Schema.builder()
+                .addField(Field.builder()
+                        .fieldName("id")
+                        .fieldType(FieldType.STRING)
+                        .primaryKey(true)
+                        .partitionKey(true)
+                        .autoIncrement(false)
+                        .notNull(true).build())
+                .addField(Field.builder()
+                        .fieldName("status")
+                        .fieldType(FieldType.UINT32).build())
+                .addField(Field.builder()
+                        .fieldName("publish_time")
+                        .fieldType(FieldType.UINT64).build())
+                // PERSISTENT_BITMAP 适用于等值/IN 过滤
+                .addIndex(new PersistentBitmapIndex("status_bitmap_idx", "status"))
+                // PERSISTENT_AGGREGATED_BITMAP 同时支持等值与范围过滤，需要 fanoutBits 与 maxDepth
+                .addIndex(new PersistentAggregatedBitmapIndex(
+                        "publish_time_bitmap_idx", "publish_time", 4, 10));
+
+        CreateTableRequest createTableRequest = CreateTableRequest.builder()
+                .database(database)
+                .table(tableName)
+                .replication(1)
+                .partition(new PartitionParams(PartitionType.HASH, 1))
+                .description("test persistent bitmap index")
+                .schema(schemaBuilder.build()).build();
+        mochowClient.createTable(createTableRequest);
+
+        while (true) {
+            Thread.sleep(3000);
+            if (mochowClient.describeTable(database, tableName).getTable().getState() == TableState.NORMAL) {
+                break;
+            }
+        }
+
+        List<Row> rows = new ArrayList<>();
+        for (int i = 1; i <= 10; i++) {
+            rows.add(Row.builder()
+                    .addField(new RowField("id", String.valueOf(i)))
+                    .addField(new RowField("status", i % 3))
+                    .addField(new RowField("publish_time", 1717200000L + i * 86400L)).build());
+        }
+        mochowClient.upsert(UpsertRequest.builder().database(database).table(tableName).rows(rows).build());
+
+        SelectResponse selectResponse = mochowClient.select(SelectRequest.builder()
+                .database(database)
+                .table(tableName)
+                .filter("status = 1 AND publish_time > 1717286400")
+                .projections(Arrays.asList("id", "status", "publish_time"))
+                .limit(10)
+                .build());
+        System.out.printf("Persistent bitmap filtered rows: %s\n", JsonUtils.toJsonString(selectResponse.getRows()));
+
+        mochowClient.dropTable(database, tableName);
+        Thread.sleep(10000);
+        mochowClient.dropDatabase(database);
+    }
+
+    // 查询指定主键在向量索引中的覆盖状态
+    public void vectorIndexMembershipExample() throws MochowClientException {
+        QueryRequest queryRequest = QueryRequest.builder()
+                .database(DATABASE)
+                .table(TABLE)
+                .addPrimaryKey("id", "0001")
+                .readConsistency(ReadConsistency.STRONG)
+                .projections(Arrays.asList("id"))
+                .vectorIndexMembership("vector_idx")
+                .build();
+        QueryResponse queryResponse = mochowClient.query(queryRequest);
+        System.out.printf("Vector index membership state: %s\n",
+                JsonUtils.toJsonString(queryResponse.getVectorIndexMembership()));
+    }
+
+    // BM25 与 Hybrid 检索的 search iterator
+    public void bm25AndHybridSearchIteratorExample() throws MochowClientException {
+        BM25SearchRequest bm25Request = BM25SearchRequest.builder("book_segment_inverted_idx", "segment:Xuande")
+                .limit(10)
+                .projections(Arrays.asList("id"))
+                .build();
+        SearchIteratorArgs bm25Args = new SearchIteratorArgs();
+        bm25Args.database = DATABASE;
+        bm25Args.table = TABLE;
+        bm25Args.request = bm25Request;
+        bm25Args.batchSize = 10;
+        bm25Args.totalSize = 20;
+        SearchIterator bm25Iterator = mochowClient.searchIterator(bm25Args);
+        while (true) {
+            List<SearchResultRow> rows = bm25Iterator.next();
+            if (rows == null || rows.isEmpty()) {
+                break;
+            }
+        }
+        bm25Iterator.close();
+
+        VectorTopkSearchRequest vectorRequest = VectorTopkSearchRequest.builder(
+                        "vector", new FloatVector(Arrays.asList(1F, 0.21F, 0.213F, 0F)), 10)
+                .config(VectorSearchConfig.builder().ef(200).build())
+                .build();
+        HybridSearchRequest hybridRequest = HybridSearchRequest.builder(
+                        vectorRequest,
+                        BM25SearchRequest.builder("book_segment_inverted_idx", "segment:Xuande").build(),
+                        0.4F, 0.6F)
+                .limit(10)
+                .projections(Arrays.asList("id"))
+                .build();
+        SearchIteratorArgs hybridArgs = new SearchIteratorArgs();
+        hybridArgs.database = DATABASE;
+        hybridArgs.table = TABLE;
+        hybridArgs.request = hybridRequest;
+        hybridArgs.batchSize = 10;
+        hybridArgs.totalSize = 20;
+        SearchIterator hybridIterator = mochowClient.searchIterator(hybridArgs);
+        while (true) {
+            List<SearchResultRow> rows = hybridIterator.next();
+            if (rows == null || rows.isEmpty()) {
+                break;
+            }
+        }
+        hybridIterator.close();
     }
 }

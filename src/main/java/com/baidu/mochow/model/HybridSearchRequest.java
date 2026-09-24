@@ -18,10 +18,11 @@ import java.util.List;
 import java.util.Map;
 
 import com.baidu.mochow.model.entity.GeneralParams;
+import com.baidu.mochow.model.entity.DecayFunction;
 import com.baidu.mochow.model.enums.ReadConsistency;
 import com.fasterxml.jackson.annotation.JsonValue;
 
-public class HybridSearchRequest implements HybridSearchRequestInterface {
+public class HybridSearchRequest implements HybridSearchRequestInterface, IterableSearchRequestInterface {
     private HybridSearchRequest(HybridSearchFields fields) {
         this.fields = fields;
     }
@@ -37,6 +38,21 @@ public class HybridSearchRequest implements HybridSearchRequestInterface {
     @Override
     public String requestType() {
         return "search";
+    }
+
+    @Override
+    public int getLimit() {
+        return fields.limit;
+    }
+
+    public String getIteratedIds() {
+        return fields.iteratedIds;
+    }
+
+    @Override
+    public void setIteratedIds(String iteratedIds) {
+        fields.iteratedIds = iteratedIds;
+        fields.hasIteratedIds = true;
     }
 
     public static Builder builder(VectorSearchRequestInterface vectorRequest,
@@ -85,6 +101,17 @@ public class HybridSearchRequest implements HybridSearchRequestInterface {
 
         public Builder filter(String filter) {
             this.fields.filter = filter;
+            return this;
+        }
+
+        public Builder decay(List<DecayFunction> decay) {
+            this.fields.decay = decay;
+            return this;
+        }
+
+        public Builder iteratedIds(String iteratedIds) {
+            this.fields.iteratedIds = iteratedIds;
+            this.fields.hasIteratedIds = true;
             return this;
         }
 

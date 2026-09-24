@@ -18,10 +18,11 @@ import java.util.List;
 import java.util.Map;
 
 import com.baidu.mochow.model.entity.GeneralParams;
+import com.baidu.mochow.model.entity.HighlightParams;
 import com.baidu.mochow.model.enums.ReadConsistency;
 import com.fasterxml.jackson.annotation.JsonValue;
 
-public class BM25SearchRequest implements BM25SearchRequestInterface {
+public class BM25SearchRequest implements BM25SearchRequestInterface, IterableSearchRequestInterface {
     private BM25SearchRequest(BM25SearchFields fields) {
         this.fields = fields;
     }
@@ -37,6 +38,21 @@ public class BM25SearchRequest implements BM25SearchRequestInterface {
     @Override
     public String requestType() {
         return "search";
+    }
+
+    @Override
+    public int getLimit() {
+        return fields.limit;
+    }
+
+    public String getIteratedIds() {
+        return fields.iteratedIds;
+    }
+
+    @Override
+    public void setIteratedIds(String iteratedIds) {
+        fields.iteratedIds = iteratedIds;
+        fields.hasIteratedIds = true;
     }
 
     public static Builder builder(String indexName, String searchText) {
@@ -77,6 +93,27 @@ public class BM25SearchRequest implements BM25SearchRequestInterface {
 
         public Builder filter(String filter) {
             this.fields.filter = filter;
+            return this;
+        }
+
+        public Builder synonyms(List<List<String>> synonyms) {
+            this.fields.synonyms = synonyms;
+            return this;
+        }
+
+        public Builder highlight(HighlightParams highlight) {
+            this.fields.highlight = highlight;
+            return this;
+        }
+
+        public Builder decay(List<com.baidu.mochow.model.entity.DecayFunction> decay) {
+            this.fields.decay = decay;
+            return this;
+        }
+
+        public Builder iteratedIds(String iteratedIds) {
+            this.fields.iteratedIds = iteratedIds;
+            this.fields.hasIteratedIds = true;
             return this;
         }
 

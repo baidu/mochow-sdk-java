@@ -25,6 +25,7 @@ import lombok.Setter;
 import com.baidu.mochow.model.entity.GeneralParams;
 import com.baidu.mochow.model.entity.GeneralParamsSerializer;
 import com.baidu.mochow.model.enums.ReadConsistency;
+import com.baidu.mochow.model.entity.VectorIndexMembership;
 
 @Getter
 @Setter
@@ -43,6 +44,7 @@ public class QueryRequest extends AbstractMochowRequest {
     List<String> projections;
     Boolean retrieveVector;
     ReadConsistency readConsistency;
+    VectorIndexMembership vectorIndexMembership;
 
    public QueryRequest(Builder builder) {
        this.database = builder.database;
@@ -52,6 +54,7 @@ public class QueryRequest extends AbstractMochowRequest {
        this.projections = builder.projections;
        this.retrieveVector = builder.retrieveVector;
        this.readConsistency = builder.readConsistency;
+       this.vectorIndexMembership = builder.vectorIndexMembership;
    }
 
    public static Builder builder() {
@@ -66,6 +69,7 @@ public class QueryRequest extends AbstractMochowRequest {
        List<String> projections;
        Boolean retrieveVector;
        ReadConsistency readConsistency;
+       VectorIndexMembership vectorIndexMembership;
 
        public Builder() {
            this.projections = new ArrayList<String>();
@@ -114,10 +118,20 @@ public class QueryRequest extends AbstractMochowRequest {
            return this;
        }
 
-       public Builder readConsistency(ReadConsistency readConsistency) {
+      public Builder readConsistency(ReadConsistency readConsistency) {
            this.readConsistency = readConsistency;
            return this;
-       }
+      }
+
+      public Builder vectorIndexMembership(String indexName) {
+          this.vectorIndexMembership = new VectorIndexMembership(indexName);
+          return this;
+      }
+
+      public Builder vectorIndexMembership(VectorIndexMembership membership) {
+          this.vectorIndexMembership = membership;
+          return this;
+      }
 
 
        public QueryRequest build() {

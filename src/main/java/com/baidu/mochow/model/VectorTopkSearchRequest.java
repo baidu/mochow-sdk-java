@@ -21,10 +21,12 @@ import com.baidu.mochow.model.entity.AdvancedOptions;
 import com.baidu.mochow.model.entity.GeneralParams;
 import com.baidu.mochow.model.entity.Vector;
 import com.baidu.mochow.model.entity.VectorSearchConfig;
+import com.baidu.mochow.model.entity.DecayFunction;
 import com.baidu.mochow.model.enums.ReadConsistency;
 import com.fasterxml.jackson.annotation.JsonValue;
 
-public class VectorTopkSearchRequest implements SingleVectorSearchRequestInterface {
+public class VectorTopkSearchRequest implements SingleVectorSearchRequestInterface,
+        IterableSearchRequestInterface {
     private VectorTopkSearchRequest(VectorSearchFields fields) {
         this.fields = fields;
     }
@@ -106,6 +108,11 @@ public class VectorTopkSearchRequest implements SingleVectorSearchRequestInterfa
         public Builder iteratedIds(String iteratedIds) {
             this.fields.iteratedIds = iteratedIds;
             this.fields.hasIteratedIds = true;
+            return this;
+        }
+
+        public Builder decay(List<DecayFunction> decay) {
+            this.fields.decay = decay;
             return this;
         }
 

@@ -17,7 +17,8 @@ import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum IndexStructureType {
     DEFAULT("DEFAULT"),
-    BITMAP("BITMAP");
+    BITMAP("BITMAP"),
+    AGGREGATED_BITMAP("AGGREGATED_BITMAP");
 
     private final String value;
 

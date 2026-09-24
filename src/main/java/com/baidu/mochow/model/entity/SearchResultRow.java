@@ -13,6 +13,9 @@
 
 package com.baidu.mochow.model.entity;
 
+import java.util.List;
+import java.util.Map;
+
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -24,4 +27,5 @@ public class SearchResultRow {
     private Row row;
     private float distance;
     private float score;
+    private Map<String, List<String>> highlight;
 }
