@@ -16,7 +16,7 @@ package com.baidu.mochow.model;
 public class SearchIteratorArgs {
     public String database;
     public String table;
-    public VectorSearchRequestInterface request;
+    public IterableSearchRequestInterface request;
     public int batchSize;
     public int totalSize;
 } 

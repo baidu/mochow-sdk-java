@@ -20,30 +20,29 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
- * IVFSQ vector index parameters.
+ * HNSWRABITQParams (HNSW with RabitQ) vector index parameters.
  */
 @Getter
 @Setter
 @NoArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
-public class IVFSQParams implements IndexParams {
-    @JsonProperty("nlist")
-    private int nlist;
+public class HNSWRABITQParams implements IndexParams {
+    @JsonProperty("M")
+    private int m;
 
-    @JsonProperty("qtBits")
-    private int qtBits;
+    @JsonProperty("efConstruction")
+    private int efConstruction;
 
-    public IVFSQParams(int nlist, int qtBits) {
-        this.nlist = nlist;
-        this.qtBits = qtBits;
+    public HNSWRABITQParams(int m, int efConstruction) {
+        this.m = m;
+        this.efConstruction = efConstruction;
     }
 
     @Override
     public String toString() {
-        return "IVFSQParams{" +
-                "nlist=" + nlist +
-                ", qtBits=" + qtBits +
+        return "HNSWRABITQParams{" +
+                "M=" + m +
+                ", efConstruction=" + efConstruction +
                 '}';
     }
 }
-

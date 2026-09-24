@@ -23,7 +23,8 @@ import com.baidu.mochow.model.entity.FusionRankPolicy;
 import com.baidu.mochow.model.enums.ReadConsistency;
 import com.fasterxml.jackson.annotation.JsonValue;
 
-public class MultiVectorSearchRequest implements VectorSearchRequestInterface {
+public class MultiVectorSearchRequest implements VectorSearchRequestInterface,
+        IterableSearchRequestInterface {
     private MultiVectorSearchRequest(MultiVectorSearchFields fields) {
         this.fields = fields;
     }

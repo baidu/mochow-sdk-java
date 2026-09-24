@@ -20,30 +20,29 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
- * IVFSQ vector index parameters.
+ * IVFPQ vector index parameters.
  */
 @Getter
 @Setter
 @NoArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
-public class IVFSQParams implements IndexParams {
+public class IVFPQParams implements IndexParams {
     @JsonProperty("nlist")
     private int nlist;
 
-    @JsonProperty("qtBits")
-    private int qtBits;
+    @JsonProperty("NSQ")
+    private int nsq;
 
-    public IVFSQParams(int nlist, int qtBits) {
+    public IVFPQParams(int nlist, int nsq) {
         this.nlist = nlist;
-        this.qtBits = qtBits;
+        this.nsq = nsq;
     }
 
     @Override
     public String toString() {
-        return "IVFSQParams{" +
+        return "IVFPQParams{" +
                 "nlist=" + nlist +
-                ", qtBits=" + qtBits +
+                ", nsq=" + nsq +
                 '}';
     }
 }
-

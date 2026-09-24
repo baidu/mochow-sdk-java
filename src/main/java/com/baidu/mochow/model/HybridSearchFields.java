@@ -20,6 +20,8 @@ public class HybridSearchFields extends SearchCommonFields {
     BM25SearchRequestInterface bm25Request;
     float vectorWeight;
     float bm25Weight;
+    public String iteratedIds = "";
+    public boolean hasIteratedIds;
 
     public void fillSearchFields(Map<String, Object> fields) {
         if (vectorRequest != null) {
@@ -32,6 +34,12 @@ public class HybridSearchFields extends SearchCommonFields {
 
         for (Map.Entry<String, Object> entry : toMap().entrySet()) {
             fields.put(entry.getKey(), entry.getValue());
+        }
+
+        if (hasIteratedIds) {
+            fields.put("iteratedIds", iteratedIds);
+        } else {
+            fields.remove("iteratedIds");
         }
 
         if (fields.containsKey("anns")) {

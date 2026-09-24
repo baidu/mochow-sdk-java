@@ -38,17 +38,28 @@ public class SearchIterator {
         if (args.batchSize != args.request.getLimit()) {
             throw new IllegalArgumentException("'request.limit' should be equal with 'batchSize'");
         }
-        if (!(args.request instanceof VectorTopkSearchRequest || args.request instanceof MultiVectorSearchRequest)) {
-            throw new IllegalArgumentException("Only VectorTopkSearchRequest and MultiVectorSearchRequest support iterator");
+        if (!(args.request instanceof VectorTopkSearchRequest
+                || args.request instanceof MultiVectorSearchRequest
+                || args.request instanceof BM25SearchRequest
+                || args.request instanceof HybridSearchRequest)) {
+            throw new IllegalArgumentException(
+                    "Only VectorTopkSearchRequest, MultiVectorSearchRequest, BM25SearchRequest"
+                            + " and HybridSearchRequest support iterator");
         }
     }
 
-    private void updateRequestIteratedIds(VectorSearchRequestInterface request, String iteratedIds) {
-        if (request instanceof VectorTopkSearchRequest) {
-            ((VectorTopkSearchRequest) request).setIteratedIds(iteratedIds);
-        } else if (request instanceof MultiVectorSearchRequest) {
-            ((MultiVectorSearchRequest) request).setIteratedIds(iteratedIds);
+    private void updateRequestIteratedIds(IterableSearchRequestInterface request, String iteratedIds) {
+        request.setIteratedIds(iteratedIds);
+    }
+
+    private SearchRowResponse doSearch() {
+        if (this.args.request instanceof BM25SearchRequest) {
+            return this.client.bm25Search(this.database, this.table, (BM25SearchRequest) this.args.request);
         }
+        if (this.args.request instanceof HybridSearchRequest) {
+            return this.client.hybridSearch(this.database, this.table, (HybridSearchRequest) this.args.request);
+        }
+        return this.client.vectorSearch(this.database, this.table, (VectorSearchRequestInterface) this.args.request);
     }
 
     public List<SearchResultRow> next() throws MochowClientException {
@@ -61,7 +72,7 @@ public class SearchIterator {
             updateRequestIteratedIds(this.args.request, this.iteratedIds);
         }
         
-        SearchRowResponse res = this.client.vectorSearch(this.database, this.table, this.args.request);
+        SearchRowResponse res = doSearch();
         if (res.getIteratedIds() == null) {
             throw new MochowClientException("search iterator is not supported");
         }

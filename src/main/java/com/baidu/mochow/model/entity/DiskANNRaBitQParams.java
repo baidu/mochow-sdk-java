@@ -20,30 +20,29 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
- * IVFSQ vector index parameters.
+ * DiskANNRaBitQParams (DiskANN with RaBitQ) vector index parameters.
  */
 @Getter
 @Setter
 @NoArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
-public class IVFSQParams implements IndexParams {
-    @JsonProperty("nlist")
-    private int nlist;
+public class DiskANNRaBitQParams implements IndexParams {
+    @JsonProperty("R")
+    private int r;
 
-    @JsonProperty("qtBits")
-    private int qtBits;
+    @JsonProperty("L")
+    private int l;
 
-    public IVFSQParams(int nlist, int qtBits) {
-        this.nlist = nlist;
-        this.qtBits = qtBits;
+    public DiskANNRaBitQParams(int r, int l) {
+        this.r = r;
+        this.l = l;
     }
 
     @Override
     public String toString() {
-        return "IVFSQParams{" +
-                "nlist=" + nlist +
-                ", qtBits=" + qtBits +
+        return "DiskANNRaBitQParams{" +
+                "R=" + r +
+                ", L=" + l +
                 '}';
     }
 }
-

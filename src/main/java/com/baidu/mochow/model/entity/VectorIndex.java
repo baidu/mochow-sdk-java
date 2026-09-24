@@ -13,6 +13,8 @@
 
 package com.baidu.mochow.model.entity;
 
+import java.util.List;
+
 import com.baidu.mochow.model.enums.IndexState;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Builder;
@@ -38,5 +40,16 @@ public class VectorIndex extends IndexField {
         setParams(params);
         setAutoBuild(autoBuild);
         setAutoBuildPolicy(autoBuildPolicy);
+    }
+
+    public VectorIndex(
+            String indexName, String fieldName, IndexType indexType, MetricType metricType,
+            IndexParams params, List<Integer> truncationDimension) {
+        setIndexName(indexName);
+        setField(fieldName);
+        setIndexType(indexType);
+        setMetricType(metricType);
+        setParams(params);
+        setTruncationDimension(truncationDimension);
     }
 }

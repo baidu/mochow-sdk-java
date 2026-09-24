@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.baidu.mochow.model.entity.GeneralParams;
+import com.baidu.mochow.model.entity.DecayFunction;
 import com.baidu.mochow.model.enums.ReadConsistency;
 
 public class SearchCommonFields {
@@ -27,6 +28,7 @@ public class SearchCommonFields {
     public boolean hasLimit;
     public int limit;
     public String filter;
+    public List<DecayFunction> decay;
 
     public Map<String, Object> toMap() {
         Map<String, Object> map = new HashMap<>();
@@ -44,6 +46,9 @@ public class SearchCommonFields {
         }
         if (filter != null) {
             map.put("filter", filter);
+        }
+        if (decay != null) {
+            map.put("decay", decay);
         }
         return map;
     }

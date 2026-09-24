@@ -14,6 +14,7 @@
 package com.baidu.mochow.model.entity;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -27,7 +28,9 @@ import com.baidu.mochow.model.enums.InvertedIndexParseMode;
 public class InvertedIndexParams implements IndexParams {
     private InvertedIndexAnalyzer analyzer;
     private InvertedIndexParseMode parseMode;
+    @JsonProperty("analyzerCaseSensitive")
     private boolean caseSensitive = true;
+    private StopWords stopWords;
 
     public InvertedIndexParams(InvertedIndexAnalyzer analyzer, InvertedIndexParseMode parseMode) {
         this.analyzer = analyzer;
@@ -38,5 +41,16 @@ public class InvertedIndexParams implements IndexParams {
         this.analyzer = analyzer;
         this.parseMode = parseMode;
         this.caseSensitive = caseSensitive;
+    }
+
+    public InvertedIndexParams(
+            InvertedIndexAnalyzer analyzer,
+            InvertedIndexParseMode parseMode,
+            boolean caseSensitive,
+            StopWords stopWords) {
+        this.analyzer = analyzer;
+        this.parseMode = parseMode;
+        this.caseSensitive = caseSensitive;
+        this.stopWords = stopWords;
     }
 }
