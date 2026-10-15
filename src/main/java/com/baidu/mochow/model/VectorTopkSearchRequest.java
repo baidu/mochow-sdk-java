@@ -62,11 +62,23 @@ public class VectorTopkSearchRequest implements SingleVectorSearchRequestInterfa
         return new Builder(vectorField, vector, limit);
     }
 
+    public static Builder textBuilder(String textField, String text, int limit) {
+        return new Builder(textField, text, limit, false);
+    }
+
     public static class Builder{
         Builder(String vectorField, Vector vector, int limit) {
             this.fields = new VectorSearchFields();
             this.fields.vectorField = vectorField;
             this.fields.vector = vector;
+            this.fields.limit = limit;
+            this.fields.hasLimit = true;
+        }
+
+        Builder(String textField, String text, int limit, boolean unused) {
+            this.fields = new VectorSearchFields();
+            this.fields.textField = textField;
+            this.fields.text = text;
             this.fields.limit = limit;
             this.fields.hasLimit = true;
         }
@@ -102,6 +114,21 @@ public class VectorTopkSearchRequest implements SingleVectorSearchRequestInterfa
 
         public Builder advancedOptions(AdvancedOptions advancedOptions) {
             this.fields.advancedOptions = advancedOptions;
+            return this;
+        }
+
+        public Builder vectorField(String vectorField) {
+            this.fields.vectorField = vectorField;
+            return this;
+        }
+
+        public Builder textField(String textField) {
+            this.fields.textField = textField;
+            return this;
+        }
+
+        public Builder text(String text) {
+            this.fields.text = text;
             return this;
         }
 

@@ -52,11 +52,25 @@ public class VectorRangeSearchRequest implements SingleVectorSearchRequestInterf
         return new Builder(vectorField, vector, range);
     }
 
+    public static Builder textBuilder(String textField, String text, DistanceRange range) {
+        return new Builder(textField, text, range, false);
+    }
+
     public static class Builder {
         Builder(String vectorField, Vector vector, DistanceRange range) {
             this.fields = new VectorSearchFields();
             this.fields.vectorField = vectorField;
             this.fields.vector = vector;
+            this.fields.distanceNear = range.getMin();
+            this.fields.hasDistanceNear = true;
+            this.fields.distanceFar = range.getMax();
+            this.fields.hasDistanceFar = true;
+        }
+
+        Builder(String textField, String text, DistanceRange range, boolean unused) {
+            this.fields = new VectorSearchFields();
+            this.fields.textField = textField;
+            this.fields.text = text;
             this.fields.distanceNear = range.getMin();
             this.fields.hasDistanceNear = true;
             this.fields.distanceFar = range.getMax();
@@ -100,6 +114,21 @@ public class VectorRangeSearchRequest implements SingleVectorSearchRequestInterf
 
         public Builder advancedOptions(AdvancedOptions advancedOptions) {
             this.fields.advancedOptions = advancedOptions;
+            return this;
+        }
+
+        public Builder vectorField(String vectorField) {
+            this.fields.vectorField = vectorField;
+            return this;
+        }
+
+        public Builder textField(String textField) {
+            this.fields.textField = textField;
+            return this;
+        }
+
+        public Builder text(String text) {
+            this.fields.text = text;
             return this;
         }
 

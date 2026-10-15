@@ -29,10 +29,12 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 public class Schema {
     private List<Field> fields;
     private List<IndexField> indexes;
+    private List<EmbeddingParams> embeddingParams;
 
     private Schema(Builder builder) {
         this.fields = builder.fields;
         this.indexes = builder.indexes;
+        this.embeddingParams = builder.embeddingParams;
     }
 
     public static Builder builder() {
@@ -42,10 +44,12 @@ public class Schema {
     public static class Builder {
         private List<Field> fields;
         private List<IndexField> indexes;
+        private List<EmbeddingParams> embeddingParams;
 
         private Builder() {
             this.fields = new ArrayList<>();
             this.indexes = new ArrayList<>();
+            this.embeddingParams = new ArrayList<>();
         }
 
         public Builder addField(Field field) {
@@ -55,6 +59,11 @@ public class Schema {
 
         public Builder addIndex(IndexField index) {
             this.indexes.add(index);
+            return this;
+        }
+
+        public Builder addEmbeddingParams(EmbeddingParams params) {
+            this.embeddingParams.add(params);
             return this;
         }
 

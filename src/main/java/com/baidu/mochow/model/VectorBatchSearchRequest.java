@@ -52,11 +52,21 @@ public class VectorBatchSearchRequest implements VectorSearchRequestInterface {
         return new Builder(vectorField, vectors);
     }
 
+    public static Builder textBuilder(String textField, List<String> texts) {
+        return new Builder(textField, texts, false);
+    }
+
     public static class Builder {
         Builder(String vectorField, List<Vector> vectors) {
             this.fields = new VectorSearchFields();
             this.fields.vectorField = vectorField;
             this.fields.vectors = vectors;
+        }
+
+        Builder(String textField, List<String> texts, boolean unused) {
+            this.fields = new VectorSearchFields();
+            this.fields.textField = textField;
+            this.fields.texts = texts;
         }
 
         public VectorBatchSearchRequest build() {
@@ -104,6 +114,21 @@ public class VectorBatchSearchRequest implements VectorSearchRequestInterface {
 
         public Builder advancedOptions(AdvancedOptions advancedOptions) {
             this.fields.advancedOptions = advancedOptions;
+            return this;
+        }
+
+        public Builder vectorField(String vectorField) {
+            this.fields.vectorField = vectorField;
+            return this;
+        }
+
+        public Builder textField(String textField) {
+            this.fields.textField = textField;
+            return this;
+        }
+
+        public Builder texts(List<String> texts) {
+            this.fields.texts = texts;
             return this;
         }
 
